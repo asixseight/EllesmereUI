@@ -46,3 +46,17 @@ Check keys: `combat-deferral`, `deprecated-global`, `ascii`, `cog-index`. A tag 
 ## Keeping this table
 
 When a reviewer corrects a mistake, fix it and add the rule here. If the rule is already here and nothing enforces it, add a check to `.tools/guardrails.py` in the same change. Remove a rule when its mistake can no longer happen.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live as local markdown files under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five roles (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`), recorded as `Status:` lines. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `CONTEXT.md` + `docs/adr/`. See `docs/agents/domain.md`.

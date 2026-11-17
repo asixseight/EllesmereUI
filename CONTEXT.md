@@ -18,5 +18,5 @@ Our strip of colored buttons docked to an open Unit Menu, one button per common 
 _Avoid_: action buttons, menu buttons, shortcut bar
 
 **Action Color**:
-The color of a Quick Action, which stands for what the action does rather than the action itself. Green adds to a group, red leaves or removes from one, yellow is an exchange.
+The color of a Quick Action, which stands for what the action does rather than the action itself. Green adds to a group, red leaves or removes from one, yellow is an exchange, blue talks, purple looks at the unit, gold changes group rank.
 _Avoid_: button color, theme color

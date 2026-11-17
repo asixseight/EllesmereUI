@@ -7,7 +7,7 @@ A World of Warcraft UI suite: unit frames, raid frames, bars and skins that repl
 ### Unit interaction
 
 **Unit Menu**:
-Blizzard's right-click popup for a unit, opened securely from our unit and raid frames.
+Blizzard's right-click popup for a player or unit, wherever it opens: our unit and raid frames, chat names, the friends list, nameplates.
 _Avoid_: context menu, right-click menu, dropdown
 
 **Context Menu**:

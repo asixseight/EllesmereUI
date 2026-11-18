@@ -247,18 +247,19 @@ local function InitializeFrames()
                 -- Places the text, and the animated icon once built, at the cog's X/Y
                 -- offsets (and the icon at its Size). The icon's spot depends on the
                 -- frame's art: the stock layout pass runs this again when that changes
-                -- (ns.UF_RestFollowArt). On the portrait, the text leaves the bar clip
-                -- and both sit above the portrait (a detached one is raised over the
-                -- frame); the passes that show, hide or re-level the portrait run
-                -- this again through _restFollowPortrait.
+                -- (ns.UF_RestFollowArt). Both sit outside the bar clip, above the border
+                -- or the portrait; portrait passes re-run this via _restFollowPortrait.
                 pf._restPlace = function()
                     local bd = RestPortrait()
                     local host = bd or pf.Health
                     local holder = pf._restHolder
-                    if holder:GetParent() ~= host then holder:SetParent(host) end
+                    -- On the bar: parented to the frame so the bar clip cannot cut it off.
+                    local parent = bd or pf
+                    if holder:GetParent() ~= parent then holder:SetParent(parent) end
                     holder:ClearAllPoints()
                     holder:SetAllPoints(host)
-                    holder:SetFrameLevel(host:GetFrameLevel() + (bd and 10 or 5))
+                    -- +11: above the frame border (frame level + 10).
+                    holder:SetFrameLevel(bd and (bd:GetFrameLevel() + 10) or (pf:GetFrameLevel() + 11))
                     PlaceRest(pf._restText, host)
                     local a = pf._restAnim
                     if a then
@@ -281,7 +282,7 @@ local function InitializeFrames()
                             tex:SetPoint("CENTER", a, "CENTER")
                             tex:SetSize(30 * k, 30 * k)
                         else
-                            a:SetFrameLevel((bd and bd:GetFrameLevel() or clipLevel) + 10)
+                            a:SetFrameLevel(bd and (bd:GetFrameLevel() + 10) or (clipLevel + 11))
                             a:SetSize(size, size)
                             PlaceRest(a, host)
                             tex:ClearAllPoints()
@@ -911,6 +912,26 @@ local function InitializeFrames()
         end)
     end)
 
+    -- Forever druid without Cat Form: build the combo row once it is learned.
+    if EllesmereUI.ForeverDruidLacksCat() then
+        local catWatcher = CreateFrame("Frame")
+        catWatcher:RegisterEvent("SPELLS_CHANGED")
+        local function BuildCatRow()
+            if ns.ReloadFrames then ns.ReloadFrames() end
+            if frames._toggleClassPower then frames._toggleClassPower() end
+            EllesmereUI:RefreshPage()
+        end
+        catWatcher:SetScript("OnEvent", function(self)
+            if EllesmereUI.ForeverDruidLacksCat() then return end
+            self:UnregisterAllEvents()
+            if InCombatLockdown() then
+                ns.CombatQueue.Defer("UF_CatFormRow", BuildCatRow)
+            else
+                BuildCatRow()
+            end
+        end)
+    end
+
     -- Durably suppress a live Blizzard child frame (target-of-target/focus-target).
     -- These are PROTECTED CHILDREN of TargetFrame/FocusFrame: when the parent uses
     -- Blizzard's source it stays alive and re-drives the child (TargetOfTargetMixin:
@@ -1043,6 +1064,9 @@ local function InitializeFrames()
 
         -- Helper: resolve which texture file + coords to use
         local function ApplyCombatTexture()
+            -- Re-read by unit key: a profile switch (RepointAllDBs) swaps
+            -- db.profile, so the table captured at setup would go stale.
+            ps = db.profile[ciUnit] or ps
             local style = ps.combatIndicatorStyle or ciDefStyle
             if style == "none" then combat:Hide(); return end
 
@@ -1130,6 +1154,7 @@ local function InitializeFrames()
         end
         local combatFrame = pf._combatEventFrame
         combatFrame:SetScript("OnEvent", function()
+            ps = db.profile[ciUnit] or ps
             local style = ps.combatIndicatorStyle or ciDefStyle
             if style ~= "none" and UnitAffectingCombat(ciUnit) then
                 ApplyCombatTexture()
@@ -1200,6 +1225,10 @@ local function InitializeFrames()
             uf._leaderSettings = settings
 
             local function ApplyLeaderIndicator()
+                -- Re-read by unit key: a profile switch (RepointAllDBs) swaps
+                -- db.profile, so the table captured at setup would go stale.
+                settings = db.profile[uf._euiBaseUnit] or settings
+                uf._leaderSettings = settings
                 local sz  = settings.leaderIndicatorSize or 16
                 local pos = settings.leaderIndicatorPosition or "topleft"
                 local ox  = settings.leaderIndicatorX or 0
@@ -1337,6 +1366,10 @@ local function InitializeFrames()
             uf._eliteSettings = settings
 
             local function ApplyEliteIndicator()
+                -- Re-read by unit key: a profile switch (RepointAllDBs) swaps
+                -- db.profile, so the table captured at setup would go stale.
+                settings = db.profile[uf._euiBaseUnit] or settings
+                uf._eliteSettings = settings
                 local sz  = settings.eliteIndicatorSize or 16
                 local pos = settings.eliteIndicatorPosition or "topleft"
                 local ox  = settings.eliteIndicatorX or 0
